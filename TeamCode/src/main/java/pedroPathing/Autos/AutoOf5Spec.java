@@ -13,6 +13,7 @@ import static pedroPathing.ClassWithStates.intakeCabinFullInBotOutputting;
 import static pedroPathing.ClassWithStates.intakeExtended4out4;
 import static pedroPathing.ClassWithStates.intakeRetracted;
 import static pedroPathing.ClassWithStates.outtakeSpecimenHang;
+import static pedroPathing.ClassWithStates.outtakeStandByWithoutExtensions;
 import static pedroPathing.OrganizedPositionStorage.autoTimer;
 import static pedroPathing.OrganizedPositionStorage.intakeExtendMotorTargetPos;
 import static pedroPathing.OrganizedPositionStorage.intakeGravitySubtractor;
@@ -81,7 +82,7 @@ public class AutoOf5Spec extends OpMode {
 
     private final Pose startPose = new Pose(-10, 70, Math.toRadians(90)); //start
     //scoring bar positions
-    private final float scoringBarX = -4f;
+    private final float scoringBarX = -2f;
     private final float scoringBarY = 41.3f;
     private final Pose scoringBarPosePreloadSpecimen = new Pose(scoringBarX, scoringBarY, Math.toRadians(90)); //start
     private final Pose scoringBarPoseFirstSpecimen = new Pose(scoringBarX-2, scoringBarY+1, Math.toRadians(90)); //start
@@ -102,9 +103,9 @@ public class AutoOf5Spec extends OpMode {
 
     // ----------------------------------------------- SAMPLE POSES ----------------------------------------------- \\
 
-    private final Pose firstSamplePickUpPos = new Pose(-59.5,60,Math.toRadians(110)); //start
-    private final Pose secondSamplePickUpPos = new Pose(-61, 61, Math.toRadians(101)); //start
-    private final Pose thirdSamplePickUpPos = new Pose(-54, 65, Math.toRadians(64)); //start
+    private final Pose firstSamplePickUpPos = new Pose(-58.5,60,Math.toRadians(112)); //start
+    private final Pose secondSamplePickUpPos = new Pose(-59, 61, Math.toRadians(100)); //start
+    private final Pose thirdSamplePickUpPos = new Pose(-51, 64, Math.toRadians(64)); //start
 
     //PARK
     private final Pose parkingPose=new Pose(-55,70 - 0.5,Math.toRadians(90)); //parking
@@ -412,6 +413,7 @@ public class AutoOf5Spec extends OpMode {
                     autoTimer = System.currentTimeMillis();
                     follower.followPath(parking,true);
                     setPathState(-1);
+                    outtakeStandByWithoutExtensions();
                 }
                 break;
         }

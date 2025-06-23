@@ -29,6 +29,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import pedroPathing.AutoPIDS.ControlMotor;
 import pedroPathing.constants.FConstants;
+import pedroPathing.constants.FConstantsForBasket;
 import pedroPathing.constants.LConstants;
 
 @Config
@@ -49,8 +50,6 @@ public class BasketTestAuto extends OpMode {
 
     /**                         Our Paths!                          */
     private int pathState = 0;
-    private final Pose parkingPose=new Pose(-55,70 - 0.5,Math.toRadians(90)); //parking
-
 
     double intakeMotorPower=0;
     double outakeMotorPower=0;
@@ -59,29 +58,32 @@ public class BasketTestAuto extends OpMode {
     private final Pose startPose = new Pose(-10, 70, Math.toRadians(180)); //start
 
     // place in basket
-    private final float xOffsetBasket = 3f;
-    private final float yOffsetBasket = 1.5f;
-    private final Pose behindBasketPreload = new Pose(-44.5 + 0.2 + 1.5, 79.5 + 0.5, Math.toRadians(225));
-    private final Pose behindBasketFirstSample = new Pose(-48.5 - 2.5 + xOffsetBasket, 81.5 + 2 + yOffsetBasket, Math.toRadians(225));
-    private final Pose behindBasketSecondSample = new Pose(-49.5 - 2.5 + 1 + xOffsetBasket, 82.5+ 2 + yOffsetBasket, Math.toRadians(225));
-    private final Pose behindBasketThirdSample = new Pose(-49 - 2.5 + 1 + xOffsetBasket, 82 + 2 + yOffsetBasket, Math.toRadians(225));
+    public final double basketY = 80;
+    public final double basketX = -45;
+    private final Pose behindBasketPreload = new Pose(basketX, basketY, Math.toRadians(230));
+    private final Pose behindBasketFirstSample = new Pose(basketX, basketY, Math.toRadians(230));
+    private final Pose behindBasketSecondSample = new Pose(basketX, basketY, Math.toRadians(230));
+    private final Pose behindBasketThirdSample = new Pose(basketX, basketY, Math.toRadians(230));
 
     // collect first 3 from floor
-    private final Pose firstSampleCollect = new Pose( -49.25 - 2.5, 91 + 2, Math.toRadians(287));
-    private final Pose secondSampleCollect = new Pose(-49.25 - 3.25 + 2.25, 89 + 2, Math.toRadians(270));
-    private final Pose thirdSampleCollect = new Pose( -44.3 - 4.5 + 5.25, 86.20 + 2, Math.toRadians(270));
+    private final Pose firstSampleCollect = new Pose( -40.5, 92, Math.toRadians(253));
+    private final Pose secondSampleCollect = new Pose(-43.2, 93.6, Math.toRadians(270));
+    private final Pose thirdSampleCollect = new Pose( -45.2, 99.5, Math.toRadians(287));
 
     // collect from submersible
 
     // first
-    private final Pose firstSubmersibleStdCollect = new Pose(-20.25, 122, 3.2909640328101575);
-    private final Pose firstSubmersibleStdBehindBasket = new Pose(-49 - 1.8 + xOffsetBasket, 82 + 2.7 + yOffsetBasket, Math.toRadians(225));
+    private final Pose firstSubmersibleStdCollect = new Pose(-12.5, 122, Math.toRadians(180));
+    private final Pose firstSubmersibleStdBehindBasket = new Pose(basketX+2, basketY+2, Math.toRadians(225));
 
     // second
-    private final Pose secondSubmersibleStdCollect = new Pose(-20.25, 122, 3.2909640328101575);
-    private final Pose secondSubmersibleStdBehindBasket = new Pose(-49 - 2.5 + xOffsetBasket, 82 + 2 + yOffsetBasket, Math.toRadians(225));
+    private final Pose secondSubmersibleStdCollect = new Pose(-12.5, 122, Math.toRadians(180));
+    private final Pose secondSubmersibleStdBehindBasket = new Pose(basketX+2, basketY+2, Math.toRadians(225));
     // sign off
     private final Pose endingPosition = new Pose( -45 , 93, Math.toRadians(287));
+
+
+    private final Point intermediaryExtraPoseForCurves = new Point( -70 ,105);
 
     /*
     heading: 4.0289046655823935
@@ -181,7 +183,7 @@ slides pos on descent -223
         ///  FIRST
         firstSubmersibleCollectPath = follower.pathBuilder()
                 .addPath(new BezierCurve(new Point(behindBasketThirdSample),
-                        new Point(-56, 102),
+                        intermediaryExtraPoseForCurves,
                         new Point(firstSubmersibleStdCollect)))
                 .setLinearHeadingInterpolation(behindBasketThirdSample.getHeading(), firstSubmersibleStdCollect.getHeading())
                 .build();
@@ -194,7 +196,7 @@ slides pos on descent -223
         /// SECOND
         secondSubmersibleCollectPath = follower.pathBuilder()
                 .addPath(new BezierCurve(new Point(firstSubmersibleStdBehindBasket),
-                        new Point(-56, 102),
+                        intermediaryExtraPoseForCurves,
                         new Point(secondSubmersibleStdCollect)))
                 .setLinearHeadingInterpolation(firstSubmersibleStdBehindBasket.getHeading(), secondSubmersibleStdCollect.getHeading())
                 .build();
@@ -218,7 +220,6 @@ slides pos on descent -223
      * The followPath() function sets the follower to run the specific path, but does NOT wait for it to finish before moving on. */
     // from 1 - 100 is normal paths
     // from 100+ is scoring paths
-    private final int slideExtensionTimer = 300;
     private final int basketDropTimer = 75;
     public void autonomousPathUpdate() {
         switch (pathState) {
@@ -229,33 +230,37 @@ slides pos on descent -223
                     follower.followPath(preloadScorePath,true);
 
 
-                    setPathState(1);
-
-                }
-                break;
-            case 1:
-                if(!follower.isBusy()){
-                    waitWhile(500);
-                    outtakeClawServoPos = outtakeClawServoExtendedPos;
                     setPathState(2);
 
                 }
                 break;
-
             // FIRST SAMPLE
             case 2:
                 if(!follower.isBusy()){
+                    waitWhile(basketDropTimer);
+                    outtakeClawServoPos = outtakeClawServoExtendedPos;
+                    waitWhile(basketDropTimer);
+
                     follower.followPath(firstSampleCollectPath,true);
                     setPathState(3);
                 }
                 break;
             case 3:
                 if(!follower.isBusy()){
-                    skipBasket =  executeAutoCollect();
+                    waitWhile(100); //lets not hang
+                    //skipBasket =  executeAutoCollect();
                     // skipBasket = false;
-                    if(!skipBasket){
+                    executeAutoCollect();
+
+                    //checking after the method finished in case it barely caught it
+                    if(currentStateOfSampleInIntake == colorSensorOutty.correctSample || currentStateOfSampleInIntake == colorSensorOutty.wrongSample){
                         setPathState(4);
-                    } else {
+                    }
+                    else if(currentStateOfSampleInIntake == colorSensorOutty.noSample){
+                        setPathState(6);
+                    }
+                    else{
+                        somethingFailed = true;
                         setPathState(6);
                     }
 
@@ -267,35 +272,37 @@ slides pos on descent -223
                     waitWhile(300);
                     follower.followPath(firstSampleScorePath);
                     //outtakeClawServoPos = outtakeClawServoExtendedPos;
-                    setPathState(5);
-                }
-                break;
-            case 5:
-                if(!follower.isBusy()){
-                    waitWhile(basketDropTimer);
-                    outtakeClawServoPos = outtakeClawServoExtendedPos;
                     setPathState(6);
                 }
                 break;
-
-                // SECOND SAMPLE
-
             case 6:
                 if(!follower.isBusy()){
+                    waitWhile(basketDropTimer);
+                    outtakeClawServoPos = outtakeClawServoExtendedPos;
+                    waitWhile(basketDropTimer);
+
                     follower.followPath(secondSampleCollectPath,true);
                     setPathState(7);
                 }
                 break;
             case 7:
                 if(!follower.isBusy()){
-                    skipBasket =  executeAutoCollect();
-                    skipBasket = false;
-                    if(!skipBasket){
+                    waitWhile(100); //lets not hang
+                    //skipBasket =  executeAutoCollect();
+                    // skipBasket = false;
+                    executeAutoCollect();
+
+                    //checking after the method finished in case it barely caught it
+                    if(currentStateOfSampleInIntake == colorSensorOutty.correctSample || currentStateOfSampleInIntake == colorSensorOutty.wrongSample){
                         setPathState(8);
-                    } else {
+                    }
+                    else if(currentStateOfSampleInIntake == colorSensorOutty.noSample){
                         setPathState(10);
                     }
-
+                    else{
+                        somethingFailed = true;
+                        setPathState(10);
+                    }
                 }
                 break;
             case 8:
@@ -312,6 +319,7 @@ slides pos on descent -223
                 if(!follower.isBusy()){
                     waitWhile(basketDropTimer);
                     outtakeClawServoPos = outtakeClawServoExtendedPos;
+                    waitWhile(basketDropTimer);
                     setPathState(10);
                 }
                 break;
@@ -327,10 +335,20 @@ slides pos on descent -223
                 break;
             case 11:
                 if(!follower.isBusy()){
-                    skipBasket =  executeAutoCollect();
-                    if(!skipBasket){
+                    waitWhile(100); //lets not hang
+                    //skipBasket =  executeAutoCollect();
+                    // skipBasket = false;
+                    executeAutoCollect();
+
+                    //checking after the method finished in case it barely caught it
+                    if(currentStateOfSampleInIntake == colorSensorOutty.correctSample || currentStateOfSampleInIntake == colorSensorOutty.wrongSample){
                         setPathState(12);
-                    } else {
+                    }
+                    else if(currentStateOfSampleInIntake == colorSensorOutty.noSample){
+                        setPathState(14);
+                    }
+                    else{
+                        somethingFailed = true;
                         setPathState(14);
                     }
 
@@ -338,6 +356,7 @@ slides pos on descent -223
                 break;
             case 12:
                 if(!follower.isBusy()){
+                    waitWhile(100); //lets not hang
                     executeAutoTransfer();
                     //waitWhile(500);
                     follower.followPath(thirdSampleScorePath);
@@ -349,6 +368,7 @@ slides pos on descent -223
                 if(!follower.isBusy()){
                     waitWhile(basketDropTimer);
                     outtakeClawServoPos = outtakeClawServoExtendedPos;
+                    waitWhile(basketDropTimer);
                     setPathState(14);
                 }
                 break;
@@ -357,6 +377,7 @@ slides pos on descent -223
             /// FIRST
             case 14:
                 if(!follower.isBusy()){
+                    waitWhile(100); //lets not hang
                     autoOuttakeTransfer();
                     follower.followPath(firstSubmersibleCollectPath);
                     setPathState(15);
@@ -384,12 +405,14 @@ slides pos on descent -223
                 if(!follower.isBusy()){
                     waitWhile(basketDropTimer);
                     outtakeClawServoPos = outtakeClawServoExtendedPos;
+                    waitWhile(basketDropTimer);
                     setPathState(19);
                 }
                 break;
             /// SECOND
             case 19:
                 if(!follower.isBusy()){
+                    waitWhile(100); //lets not hang
                     autoOuttakeTransfer();
                     follower.followPath(secondSubmersibleCollectPath);
                     setPathState(20);
@@ -417,6 +440,7 @@ slides pos on descent -223
                 if(!follower.isBusy()){
                     waitWhile(basketDropTimer);
                     outtakeClawServoPos = outtakeClawServoExtendedPos;
+                    waitWhile(basketDropTimer);
                     setPathState(24);
                 }
                 break;
@@ -444,14 +468,15 @@ slides pos on descent -223
     public void init() {
         resetStuff();
         isRobotInAuto = true;
+        somethingFailed = false;
 
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
 
 
-        Constants.setConstants(FConstants.class, LConstants.class);
-        follower = new Follower(hardwareMap,FConstants.class,LConstants.class);
+        Constants.setConstants(FConstantsForBasket.class, LConstants.class);
+        follower = new Follower(hardwareMap,FConstantsForBasket.class,LConstants.class);
         follower.setStartingPose(startPose);
         buildPaths();
         setPathState(0);
@@ -491,28 +516,35 @@ slides pos on descent -223
         //end of our stuff
     }
 
-    public boolean executeAutoCollect(){
-        boolean collectTimedOut = true;
+
+    //for the prearanged samples
+    public void executeAutoCollect(){
         autoTimer = System.currentTimeMillis();
+
         intakeCabinDownCollecting();
-        waitWhile(500);
+        intakeExtended1out4();
+
+        waitWhile(200);
         autoOuttakeTransfer();
+
         waitWhile(300);
         intakeExtended4out4();
+
+        autoTimer = System.currentTimeMillis();
         while(!(currentStateOfSampleInIntake == colorSensorOutty.wrongSample || currentStateOfSampleInIntake == colorSensorOutty.correctSample)
                 && autoTimer + 2000 > System.currentTimeMillis()) {
             robotDoStuff();
         }
-        waitWhile(200);
-        if (currentStateOfSampleInIntake == colorSensorOutty.wrongSample || currentStateOfSampleInIntake == colorSensorOutty.correctSample){
-            collectTimedOut = false;
-            intakeSpinMotorPow = 0;
-        }
-        intakeRetracted();
         intakeCabinTransferPositionWithPower();
+        waitWhile(200);
+        //if (currentStateOfSampleInIntake == colorSensorOutty.wrongSample || currentStateOfSampleInIntake == colorSensorOutty.correctSample){
+        //    intakeSpinMotorPow = 0;
+        //}
+        intakeRetracted();
         outtakeClawServoPos = outtakeClawServoExtendedPos;
-        return collectTimedOut;
     }
+
+
 
     public void executeSubmersibleCollect() {
         autoTimer = System.currentTimeMillis();
@@ -531,13 +563,15 @@ slides pos on descent -223
         }
         intakeCabinTransferPositionWithPower();
         intakeRetracted();
-        outtakeClawServoPos = outtakeClawServoExtendedPos + 50;
+        outtakeClawServoPos = outtakeClawServoExtendedPos + 20;
     }
+
+
 
     public void executeAutoTransfer() {
 
         autoOuttakeTransfer();
-        while(intakeMotor.getCurrentPosition() > 50) {
+        while(intakeMotor.getCurrentPosition() > 30) {
             robotDoStuff();
         }
         waitWhile(75);
@@ -547,18 +581,13 @@ slides pos on descent -223
         outtakeBasket();
     }
 
+
+
     public void robotDoStuff(){
         //risky
-        follower.update();
+        //follower.update();
 
-
-
-        /*
         //ifs
-        if(needsToExtraExtend && outtakeIsInNeedToExtraExtendClawTimer + 400 < System.currentTimeMillis()){
-            needsToExtraExtend = false;
-            outtakeClawServoPos = outtakeClawServoExtraExtendedPos;
-        }
 
         //intake stop spinning
         if(shouldStopIntakeCabinSpinningAfterTakig && shouldStopIntakeCabinSpinningAfterTakigTimer + 500 < System.currentTimeMillis()){
@@ -576,7 +605,7 @@ slides pos on descent -223
             hasSmolOutputed = false;
         }
 
-        */
+        //*/
 
         //color stuff
         NormalizedRGBA colors = colorSensor.getNormalizedColors();

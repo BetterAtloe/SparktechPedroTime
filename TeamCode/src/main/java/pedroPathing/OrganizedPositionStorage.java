@@ -39,7 +39,7 @@ public class OrganizedPositionStorage {
     //outtake claw
     public static double outtakeClawServoExtendedPos = 128;
     public static double outtakeClawServoExtraExtendedPos = 208;
-    public static double outtakeClawServoRetractedPos = 17;
+    public static double outtakeClawServoRetractedPos = 15;
 
 
     // outtake pivot
@@ -84,6 +84,7 @@ public class OrganizedPositionStorage {
     public static boolean isRobotInAuto = false;
     public static boolean isInLowerBasketState = false;
     public static boolean isColorSensorNotInUse = false;
+    public static boolean somethingFailed = false;
 
 
     //is pressed
@@ -184,6 +185,8 @@ public class OrganizedPositionStorage {
         Toggle.toggledVarButton2 = false;
         isRobotInAuto = false;
         isInLowerBasketState = false;
+        somethingFailed = false;
+
         // MISC
         PIDincrement = 0;
         gravityAdder = 0;

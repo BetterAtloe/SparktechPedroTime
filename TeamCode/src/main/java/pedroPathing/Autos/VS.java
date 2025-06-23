@@ -11,7 +11,6 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.BezierCurve;
 import com.pedropathing.pathgen.BezierLine;
 import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
@@ -46,7 +45,7 @@ import pedroPathing.constants.LConstants;
 
 @Config
 @Autonomous(name = "Vision Strafe", group = "Examples")
-public class VisionStrafe extends OpMode {
+public class VS extends OpMode {
     private FtcDashboard dashboard;
     private Telemetry dashboardTelemetry;
 
